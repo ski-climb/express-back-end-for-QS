@@ -1,0 +1,26 @@
+{
+  "name": "foods-in-express",
+  "version": "1.0.0",
+  "description": "CRUD for foods - will eventually match with Quantified Self",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "i will add one"
+  },
+  "author": "Nicholas Erhardt",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "pryjs": "^1.0.3",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "request": "^2.81.0"
+  }
+}
