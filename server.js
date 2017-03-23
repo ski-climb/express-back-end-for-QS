@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const environment = process.env.NODE_ENV || 'development';
+const configuration = require('./knexfile')[environment];
+const database = require('knex')(configuration);
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
@@ -29,23 +32,28 @@ app.get('/', (request, response) => {
 // SHOW (read)
 app.get('/api/foods/:id', (request, response) => {
   const id = request.params.id
-  const food = app.locals.foods[id]
-
-  if (!food) { return response.sendStatus(404) }
-
-  response.send(food)
+  database.raw('select * from foods where id=?', [id])
+  .then((data) => {
+    if (!data.rowCount) {
+      return response.sendStatus(404)
+    }
+    response.json(data.rows)
+  });
 }) // end of SHOW
 
 // INDEX (read)
 app.get('/api/foods/', (request, response) => {
-  const foods = app.locals.foods
-
-  response.send(foods)
+  database.raw('select * from foods')
+  .then((data) => {
+    if (!data.rowCount) {
+      return response.sendStatus(404)
+    }
+    response.json(data.rows)
+  });
 }) // end of INDEX
 
 // CREATE
 app.post('/api/foods', (request, response) => {
-  const id = Date.now()
   const food = request.body
 
   if (!food) {
@@ -53,11 +61,13 @@ app.post('/api/foods', (request, response) => {
       error: "No food property provided."
     })
   }
-  app.locals.foods[id] = food
-  response.status(201).json({
-    id, food
+
+  database.raw(
+    'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
+    [food.name, food.calories, food.visibility, new Date, new Date]
+  ).then((data) => {
+    response.sendStatus(201)
   })
-  response.status(201).end()
 }) // end CREATE
 
 // UPDATE
@@ -65,24 +75,38 @@ app.put('/api/foods/:id', (request, response) => {
   const id = request.params.id
   const food = request.body
 
-  if (!app.locals.foods[id]) { return response.sendStatus(404) }
-  if (!food) {
-    return response.status(422).send({
-      error: "No food property provided."
-    })
-  }
+  database.raw('select * from foods where id=?', [id])
+  .then((data) => {
+    if (!data.rowCount) {
+      return response.sendStatus(404)
+    }
+  });
 
-  app.locals.foods[id] = food
-  response.status(200).json({
-    id, food
+  database.raw('update foods set name = ?, calories = ?, visibility = ?, updated_at = ? where id=?',
+    [food.name, food.calories, food.visibility, new Date, id])
+  .then((data) => {
+    database.raw('select * from foods where id=?', [id])
+    .then((data) => {
+      return response.json(data.rows)
+    })
   })
-})
+}) // end of UPDATE
 
 // DELETE
 app.delete('/api/foods/:id', (request, response) => {
   const id = request.params.id
-  delete app.locals.foods[id]
-  response.status(200).end()
+
+  database.raw('select * from foods where id=?', [id])
+  .then((data) => {
+    if (!data.rowCount) {
+      return response.sendStatus(404)
+    }
+  });
+
+  database.raw('delete from foods where id=?', [id])
+  .then((data) => {
+    response.status(200).end()
+  });
 }) // end of DELETE
 
 
