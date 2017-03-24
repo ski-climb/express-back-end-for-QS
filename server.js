@@ -72,14 +72,12 @@ app.put('/api/foods/:id', (request, response) => {
 app.delete('/api/foods/:id', (request, response) => {
   const id = request.params.id
 
-  Food.find(id).then((data) => {
-    if (!data.rowCount) {
-      return response.sendStatus(404)
-    }
-  });
-
   Food.deleteFood(id).then((data) => {
-    response.status(200).end()
+    if (data.rowCount) {
+      response.sendStatus(200)
+    } else {
+      response.sendStatus(204)
+    }
   });
 }) // end of DELETE
 

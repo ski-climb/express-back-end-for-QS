@@ -16,7 +16,6 @@ describe('Server', () => {
     })
   })
 
-
   after(() => {
     this.server.close()
   })
@@ -226,9 +225,9 @@ describe('Server', () => {
       Food.destroyAll().then(() => done());
     })
 
-    it('returns a 404 when the given id to delete does not exist', (done) => {
+    it('returns a 204 when the given id to delete does not exist', (done) => {
       this.request.delete('/api/foods/999', (error, response) => {
-        assert.equal(response.statusCode, 404)
+        assert.equal(response.statusCode, 204)
         done()
       })
     })
