@@ -3,6 +3,15 @@ const app = express()
 const bodyParser = require('body-parser')
 const Food = require('./lib/models/food')
 const FoodsController = require('./lib/controllers/foods-controller')
+const cors = require('cors')
+
+var corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200 // some leagacy browsers (IE11, various smart TV's) choke on 204
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
