@@ -8,19 +8,6 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 app.set('port', process.env.PORT || 3000)
 app.locals.title = "Foods CRUD"
-app.locals.foodId = 1
-app.locals.foods = {
-  1: {
-    name: "pie",
-    calories: 200,
-    visibility: "visible"
-  },
-  2: {
-    name: "cake",
-    calories: 123,
-    visibility: "visible"
-  }}
-
 
 // ROOT
 app.get('/', (request, response) => {
@@ -69,7 +56,7 @@ app.put('/api/foods/:id', (request, response) => {
   const id = request.params.id
   const food = request.body
 
-  Food.updateFood(id, food.name, food.calories, food.visibility)
+  Food.update(id, food.name, food.calories, food.visibility)
   .then((data) => {
     if (data.rowCount) {
       Food.find(id).then((data) => {
