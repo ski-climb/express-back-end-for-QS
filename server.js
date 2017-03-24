@@ -7,7 +7,7 @@ const FoodsController = require('./lib/controllers/foods-controller')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 
-app.set('port', process.env.PORT || 3000)
+app.set('port', process.env.PORT || 3030)
 
 // ROOT
 app.get('/', FoodsController.root)
