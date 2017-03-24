@@ -1,9 +1,7 @@
 const assert = require('chai').assert
 const app = require('../server')
 const request = require('request')
-const environment = process.env.NODE_ENV || 'development';
-const configuration = require('../knexfile')[environment];
-const database = require('knex')(configuration);
+const Food = require('../lib/models/food')
 
 describe('Server', () => {
   before((done) => {
@@ -49,15 +47,11 @@ describe('Server', () => {
   // SHOW (read)
   describe('GET /api/foods/:id', (error, response) => {
     beforeEach((done) => {
-      database.raw(
-        'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
-        ['cupcakes', 333, 'visible', new Date, new Date]
-      ).then(() => done());
+      Food.createFood('cupcakes', 333, 'visible').then(() => done());
     })
 
     afterEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done());
+      Food.destroyAll().then(() => done());
     })
 
     it('returns 404 when resource not found', (done) => {
@@ -92,20 +86,13 @@ describe('Server', () => {
   // INDEX (read)
   describe('GET /api/foods', (error, response) => {
     beforeEach((done) => {
-      database.raw(
-        'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
-        ['pie', 333, 'visible', new Date, new Date]
-      ).then(() => {
-      database.raw(
-        'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
-        ['cupcakes', 123, 'hidden', new Date, new Date]
-      ).then(() => done())
+      Food.createFood('pie', 333, 'visible').then(() => {
+      Food.createFood('cupcakes', 123, 'hidden').then(() => done())
       })
     })
 
     afterEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done());
+      Food.destroyAll().then(() => done());
     })
 
     it('returns the data for all foods', (done) => {
@@ -127,13 +114,11 @@ describe('Server', () => {
   // CREATE
   describe('POST /api/foods', () => {
     beforeEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done())
+      Food.destroyAll().then(() => done())
     })
 
     afterEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done())
+      Food.destroyAll().then(() => done())
     })
 
     it('should return a 201', (done) => {
@@ -145,12 +130,10 @@ describe('Server', () => {
       this.request.post('/api/foods', {form: food }, (error, response) => {
         if (error) { done(error) }
 
-        database.raw('select * from foods where name=?', [food.name])
-        .then((data) => {
+        Food.findByName(food.name).then((data) => {
           assert.equal(data.rowCount, 1)
           assert.equal(response.statusCode, 201)
         })
-
         done()
       })
     })
@@ -164,8 +147,7 @@ describe('Server', () => {
       this.request.post('/api/foods', { form: food }, (error, response) => {
         if (error) { done(error) }
         var foodsCount = 0
-        database.raw('select * from foods')
-        .then((data) => {
+        Food.all().then((data) => {
           foodsCount = data.rowCount
         })
         .then(() => assert.equal(foodsCount, 1))
@@ -177,15 +159,11 @@ describe('Server', () => {
   // UPDATE
   describe('PUT /api/foods/:id', () => {
     beforeEach((done) => {
-      database.raw(
-        'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
-        ['cupcakes', 333, 'visible', new Date, new Date]
-      ).then(() => done());
+      Food.createFood('cupcakes', 333, 'visible').then(() => done());
     })
 
     afterEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done());
+      Food.destroyAll().then(() => done());
     })
 
     it('should return a 200', (done) => {
@@ -227,8 +205,7 @@ describe('Server', () => {
         if (error) { done(error) }
         assert.equal(response.statusCode, 200)
 
-        database.raw('select * from foods where id=?', [id])
-        .then((data) => {
+        Food.find(id).then((data) => {
           updatedFood = data.rows[0]
           assert.equal(updatedFood.id, id)
           assert.equal(updatedFood.name, food.name)
@@ -242,15 +219,11 @@ describe('Server', () => {
   // DELETE
   describe('DELETE /api/foods/:id', () => {
     beforeEach((done) => {
-      database.raw(
-        'insert into foods (name, calories, visibility, created_at, updated_at) values (?, ?, ?, ?, ?)',
-        ['cupcakes', 333, 'visible', new Date, new Date]
-      ).then(() => done());
+      Food.createFood('cupcakes', 333, 'visible').then(() => done());
     })
 
     afterEach((done) => {
-      database.raw('truncate foods restart identity')
-      .then(() => done());
+      Food.destroyAll().then(() => done());
     })
 
     it('returns a 404 when the given id to delete does not exist', (done) => {
@@ -265,8 +238,7 @@ describe('Server', () => {
         if (error) { done(error) }
         var foodsCount;
 
-        database.raw('select * from foods')
-        .then((data) => {
+        Food.all().then((data) => {
           foodsCount = data.rowCount
         })
         .then(() => assert.equal(foodsCount, 0))
