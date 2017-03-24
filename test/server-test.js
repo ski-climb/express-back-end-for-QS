@@ -71,7 +71,7 @@ describe('Server', () => {
       this.request.get('/api/foods/1', (error, response) => {
         if (error) { done(error) }
 
-        let parsedFood = JSON.parse(response.body)[0]
+        let parsedFood = JSON.parse(response.body)
 
         assert.equal(parsedFood.id, id)
         assert.equal(parsedFood.name, food.name)
