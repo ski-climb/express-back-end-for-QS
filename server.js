@@ -2,17 +2,15 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const Food = require('./lib/models/food')
+const FoodsController = require('./lib/controllers/foods-controller')
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 
 app.set('port', process.env.PORT || 3000)
-app.locals.title = "Foods CRUD"
 
 // ROOT
-app.get('/', (request, response) => {
-  response.send(app.locals.title)
-})
+app.get('/', FoodsController.root)
 
 // SHOW (read)
 app.get('/api/foods/:id', (request, response) => {
