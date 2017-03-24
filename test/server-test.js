@@ -144,7 +144,13 @@ describe('Server', () => {
       }
       this.request.post('/api/foods', {form: food }, (error, response) => {
         if (error) { done(error) }
-        assert.equal(response.statusCode, 201)
+
+        database.raw('select * from foods where name=?', [food.name])
+        .then((data) => {
+          assert.equal(data.rowCount, 1)
+          assert.equal(response.statusCode, 201)
+        })
+
         done()
       })
     })
@@ -195,7 +201,7 @@ describe('Server', () => {
       })
     })
 
-    it('should return a 404 when the food does not exist', (done) => {
+    it('should return a 204 when the food does not exist', (done) => {
       const food = {
         name: "banana",
         calories: 123,
@@ -203,7 +209,7 @@ describe('Server', () => {
       }
       this.request.put('/api/foods/999', {form: food }, (error, response) => {
         if (error) { done(error) }
-        assert.equal(response.statusCode, 404)
+        assert.equal(response.statusCode, 204)
         done()
       })
     })
@@ -215,18 +221,20 @@ describe('Server', () => {
         visibility: "hidden"
       }
       const id = 1
-      var updated_food
+      var updatedFood
 
       this.request.put('/api/foods/1', { form: food }, (error, response) => {
         if (error) { done(error) }
+        assert.equal(response.statusCode, 200)
 
-        let updatedFood = JSON.parse(response.body)[0]
-
-        assert.equal(updatedFood.id, id)
-        assert.equal(updatedFood.name, food.name)
-        assert.equal(updatedFood.calories, food.calories)
-        assert.equal(updatedFood.visibility, food.visibility)
-        done()
+        database.raw('select * from foods where id=?', [id])
+        .then((data) => {
+          updatedFood = data.rows[0]
+          assert.equal(updatedFood.id, id)
+          assert.equal(updatedFood.name, food.name)
+          assert.equal(updatedFood.calories, food.calories)
+          assert.equal(updatedFood.visibility, food.visibility)
+        }).then(() => done())
       })
     })
   }) // end of UPDATE
